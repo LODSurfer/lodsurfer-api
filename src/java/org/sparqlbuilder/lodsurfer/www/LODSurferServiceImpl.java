@@ -7,12 +7,21 @@ package org.sparqlbuilder.lodsurfer.www;
 
 //import javax.ws.rs.PathParam;
 
+import org.sparqlbuilder.lodsurfer.core.LSCtrl;
+
+
 /**
  *
  * @author atsuko
  */
 public class LODSurferServiceImpl implements LODSurferService{
 
+    LSCtrl lsctrl;
+    
+    public LODSurferServiceImpl(){
+        lsctrl = new LSCtrl();
+    }
+    
     @Override
     public String getUsage(){
         return "Usage: \n"
@@ -22,6 +31,7 @@ public class LODSurferServiceImpl implements LODSurferService{
     
     @Override
     public String getCList(String class1){
+        //return lsctrl;
         return "";
     }
     
