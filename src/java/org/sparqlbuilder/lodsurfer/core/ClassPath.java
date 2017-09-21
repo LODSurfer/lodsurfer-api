@@ -13,6 +13,10 @@ import java.util.*;
  */
 
 public class ClassPath {
-    List<Integer> classURIs;
+    List<Integer> classes;
     List<DiEdge> properties;
+    
+    public ClassPath(){
+        
+    } 
 }

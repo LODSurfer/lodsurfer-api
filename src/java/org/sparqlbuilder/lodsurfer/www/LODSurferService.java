@@ -6,6 +6,7 @@
 package org.sparqlbuilder.lodsurfer.www;
 
 import javax.ws.rs.*;
+import org.sparqlbuilder.lodsurfer.core.LSCtrl;
 
 /**
  *
@@ -13,25 +14,56 @@ import javax.ws.rs.*;
  */
 
 @Path("/")
-public interface LODSurferService {
+public class LODSurferService {
+    
+    LSCtrl lsctrl;
+    
+    public LODSurferService(){
+        lsctrl = new LSCtrl();
+    }
+    
     
     @GET
-    public String getUsage();
+    public String getUsage(){
+        return "Hi";
+    }
     
+    @GET
+    @Path("/eplist")
+    public String getEPList(){
+        return lsctrl.getEPs().toString();
+    }
+
+    @GET
+    @Path("/clist")
+    public String getCList(){
+        return lsctrl.getAllClasses().toString();
+    }
+
     @GET
     @Path("/clist/{class1}")
-    public String getCList(@PathParam("class1") String class1);
-   
+    public String getCList(@PathParam("class1") String class1){
+        return lsctrl.getCLs(class1).toString();        
+    }
+    
     @GET
-    @Path("/eplist/{class1}")
-    public String getEPList(@PathParam("class1") String class1);
-   
+    @Path("/path/{class1}/{class2}")
+    public String getPaths(@PathParam("class1") String class1, @PathParam("class2") String class2){
+        return lsctrl.getPaths(class1, class2).toString();
+    }
+    
     @GET
     @Path("/path/{class1}/{class2}/{filters}")
     public String getPaths(@PathParam("class1") String class1, @PathParam("class2") String class2,
-                           @PathParam("filters") String filters);
+                           @PathParam("filters") String filters){
+        return "Hi";
+        
+    }
    
     @GET
     @Path("/ipath/{path}/{instances}")
-    public String getIPaths(@PathParam("path") String iclass, @PathParam("instances") String oclass);
+    public String getIPaths(@PathParam("path") String iclass, @PathParam("instances") String oclass){
+        return "Hi";
+        
+    }
 }

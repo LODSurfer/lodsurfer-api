@@ -58,4 +58,93 @@ public class ClassGraph {
         properties.get(node2).get(node1).add(new DiEdge(cr, false));
     }
     
+    public List<ClassPath> getPaths(String class1, String class2, int nsteps){
+        List<ClassPath> cps = new LinkedList<>();
+        
+        //checkedpaths = new HashMap<String, Boolean>();
+        Integer snode = uRI2node.get(class1);
+        Integer enode = uRI2node.get(class2);
+        List<List<Integer>> simplePaths = searchSimplePaths(snode, enode, nsteps);
+ 
+        ListIterator<List<Integer>> pit = simplePaths.listIterator();       
+        while( pit.hasNext()){
+            List<Integer> spath = pit.next();
+            List<ClassPath> convertedPaths = convertSimplePathToPaths(spath);
+            cps.addAll(convertedPaths);
+        }        
+        return cps;
+    }
+    
+    private List<List<Integer>> searchSimplePaths(Integer snode, Integer enode, int nsteps){
+        List<List<Integer>> simplePaths = new LinkedList<>();
+        List<List<Integer>> lp = new LinkedList<>();
+        List<Integer> ini = new LinkedList<Integer>(); // initial path
+        ini.add(snode);
+        lp.add(ini);
+        for (int i = 0; i < nsteps; i++ ){
+            ListIterator<List<Integer>> lit = lp.listIterator();
+            List<List<Integer>> nextlp = new LinkedList<>();
+            while ( lit.hasNext() ){ 
+                List<Integer> crrpath = lit.next();
+                Integer crrnode = crrpath.get(crrpath.size()-1);
+                Set<Integer> nexts = adjlist.get(crrnode);
+                Iterator<Integer> nit = nexts.iterator();
+                while( nit.hasNext() ){
+                    Integer nextnode = nit.next();
+                    if ( crrpath.contains(nextnode) ){ continue; }
+                    List<Integer> nextpath = new LinkedList<Integer>(crrpath); // copy
+                    nextpath.add(nextnode);
+                    if ( nextnode.equals(enode) ){
+                        simplePaths.add(nextpath);
+                        continue;
+                    }
+                    nextlp.add(nextpath);
+                }
+	    }
+            lp = nextlp;
+        }        
+        return simplePaths;
+    }
+    
+    private List<ClassPath> convertSimplePathToPaths(List<Integer> simplePath){
+        List<ClassPath> paths = new LinkedList<ClassPath>();
+        ListIterator<Integer> spit = simplePath.listIterator();
+
+        Integer start = spit.next();
+        String startClass = this.classURIs.get(start);
+        Integer end = spit.next();
+        List<DiEdge> edges = properties.get(start).get(end);
+        ListIterator<DiEdge> eit = edges.listIterator();
+        while ( eit.hasNext() ){
+            ClassPath cp = new ClassPath();
+            cp.classes = simplePath;
+            cp.properties.add(eit.next());
+            paths.add(cp);
+        }
+        start = end;
+        while( spit.hasNext() ){
+            end = spit.next();
+            // start-end
+            edges = properties.get(start).get(end);
+            List<ClassPath> tmppaths = new LinkedList<ClassPath>();            
+            // current path
+            ListIterator<ClassPath> pit = paths.listIterator();
+            while ( pit.hasNext() ){
+                ClassPath basepath = pit.next();
+                eit = edges.listIterator();
+                while ( eit.hasNext() ){
+                    // koko kara
+                    DiEdge cl = eit.next();
+                    ClassPath addedpath = new ClassPath();
+                    addedpath.classes = basepath.classes;
+                    addedpath.properties.add(cl);
+                    tmppaths.add(addedpath);
+                }
+            }
+            paths = tmppaths;
+            start = end;
+        }        
+        return paths;
+    }
+    
 }
