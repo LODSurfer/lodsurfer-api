@@ -8,6 +8,7 @@ package org.sparqlbuilder.lodsurfer.www;
 
 import javax.ws.rs.core.Application;
 import javax.ws.rs.*;
+import org.sparqlbuilder.lodsurfer.core.LSCtrl;
 
 /*
  * @author atsuko
@@ -15,7 +16,9 @@ import javax.ws.rs.*;
 
 @ApplicationPath("api")
 public class LODSurferApp extends Application{
+    //LSCtrl lsctrl;
+
     public LODSurferApp(){
-        
+        //lsctrl = new LSCtrl();    
     }
 }

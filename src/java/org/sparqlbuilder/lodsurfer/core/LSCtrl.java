@@ -5,7 +5,6 @@
  */
 package org.sparqlbuilder.lodsurfer.core;
 
-import java.math.BigDecimal;
 import java.util.*;
 import javax.json.*;
 
@@ -17,25 +16,36 @@ public class LSCtrl {
     
     ClassGraph cg = null;
     Map<String, ClassInfo> cl = null;  // classURI->classInfo
-    Map<String, TreeSet<String>> clrel = null; // class->(step,classes)
+    Map<String, Set<SPathInfo>> clrel = null; // class->(step,classes)
+    
     Set<String> eps = null;
     //Set<String> yum = null; // yummy ep list
-    //Set<String> avep = null;
     
     String clfile = "cc/cl.txt";
     String epfile = "cc/ep.txt";
-    String crelfile = "cc/crel.txt";
+    String crelfile = "cc/cr.txt";
     String cldir = "cc/";
     
     public LSCtrl(){
         // cl.txt -> cl
         eps = LSIO.readEP(epfile);
         cl = LSIO.readCL(clfile);
-        clrel = LSIO.readCR(crelfile);
+        Map<String, Set<String>> clreltmp = LSIO.readCR(crelfile);
+        clrel = convert2SPath(clreltmp);
 
         cg = LSIO.readCLDir(cldir, eps);
         // clrel.txt -> crel        
     }
+    
+    public class SPathInfo{
+        String class2;
+        int minstep;
+        public SPathInfo(String cl, int sp){
+            class2 = cl;
+            minstep = sp;
+        }
+    }
+    
     
     public JsonArray getEPs(){
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
@@ -77,15 +87,17 @@ public class LSCtrl {
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
         JsonArrayBuilder jab = jbfactory.createArrayBuilder();
         if (class1 == null){
-            return null;
+            return jab.build();
         }else{
-            //
-            TreeSet<String> classes = clrel.get(class1);
-            Iterator<String> cit = classes.descendingIterator();
+            Set<SPathInfo> classes = clrel.get(class1);
+            if (classes == null ){
+                return jab.build();
+            }
+            Iterator<SPathInfo> cit = classes.iterator();
             JsonObjectBuilder job = jbfactory.createObjectBuilder();
             while( cit.hasNext() ){
-                String nclassuri = cit.next();
-                String classuri = nclassuri.split(" ")[1];
+                String classuri = cit.next().class2;
+                //String classuri = nclassuri.split(" ")[1];
                 ClassInfo classinfo = cl.get(classuri);
                 ListIterator<String> eit = classinfo.endpoints.listIterator();
                 while ( eit.hasNext() ){
@@ -97,7 +109,7 @@ public class LSCtrl {
                     jab.add(job);
                 }
             }
-        }       
+        }
         JsonArray ja = jab.build();
         return ja;
     }
@@ -106,21 +118,25 @@ public class LSCtrl {
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
         JsonArrayBuilder jab = jbfactory.createArrayBuilder();
         
-        TreeSet<String> cl = clrel.get(class1);
-        Iterator<String> cit = cl.iterator();
+        Set<SPathInfo> cl = clrel.get(class1);
+        Iterator<SPathInfo> cit = cl.iterator();
         int minstep = 0;
         while ( cit.hasNext() ){
-            String[] cdata = cit.next().split(" ");
-            if ( cdata[1].equals(class2)){
-                minstep = Integer.parseInt(cdata[0]);
+            SPathInfo si = cit.next();
+            //String[] cdata = cit.next().split(" ");
+            if ( si.class2.equals(class2) ){
+                minstep = si.minstep;
             }
+        }
+        if ( minstep == 0 ){
+            return jab.build();
         }
         
         List<ClassPath> paths = cg.getPaths(class1, class2, minstep);
         ListIterator<ClassPath> pit = paths.listIterator();
         while ( pit.hasNext() ){
             jab.add(toJsonFromPath(pit.next()));
-        }        
+        }
         JsonArray ja = jab.build();
         return ja;
     }
@@ -161,4 +177,24 @@ public class LSCtrl {
         JsonObject jo = job.build();
         return jo;        
     }    
+    
+    private Map<String, Set<SPathInfo>> convert2SPath(Map<String, Set<String>> reltmp){
+        Map<String, Set<SPathInfo>> sp = new HashMap<>();
+        Iterator<String> cit = reltmp.keySet().iterator();
+        while ( cit.hasNext()){
+            sp.put(cit.next(), new HashSet<SPathInfo>());
+        }
+        
+        while ( cit.hasNext()){         
+            String cl1 = cit.next();
+            Iterator<String> sit = reltmp.get(cl1).iterator();
+            while ( sit.hasNext()){
+                String[] scl = sit.next().split(" ");
+                sp.get(cl1).add(new SPathInfo(scl[1], Integer.parseInt(scl[0])));
+                sp.get(scl[1]).add(new SPathInfo(cl1, Integer.parseInt(scl[0])));                
+            }
+        }
+        
+        return sp;
+    }
 }

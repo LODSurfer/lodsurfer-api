@@ -44,8 +44,7 @@ public class LSIO {
                     cl.put(data[0], cli);
                 }else{
                     cli.addInfo(data[2], data[1], Integer.parseInt(data[3]));
-                }
-                
+                }                
             }
         }catch(IOException e){
             e.printStackTrace();
@@ -53,16 +52,24 @@ public class LSIO {
         return cl;
     }
     
-    static Map<String, TreeSet<String>> readCR(String filename){
-        Map<String, TreeSet<String>> cr = new HashMap<>();
+    static Map<String, Set<String>> readCR(String filename){
+        Map<String, Set<String>> cr = new HashMap<>();
         File crfile = new File(filename);
         try{
             BufferedReader br = new BufferedReader(new FileReader(crfile));
             String buf;
             while ( (buf = br.readLine()) != null ){
                 String[] data = buf.split("\t");// cl url \tab cl, cl,....
+                if (data.length <= 1){
+                    cr.put(data[0], new HashSet<>());
+                    continue;
+                }
+                if ( data[1] == null ){ 
+                    cr.put(data[0], new HashSet<>());
+                    continue;
+                }
                 String[] cls = data[1].split(",");
-                TreeSet<String> clss = new TreeSet<>();
+                Set<String> clss = new HashSet<>();
                 for ( int i = 0; i < cls.length; i++){
                     clss.add(cls[i]);
                 }
@@ -70,7 +77,7 @@ public class LSIO {
             }
         }catch(IOException e){
             e.printStackTrace();
-        }       
+        }
         return cr;
     }
     

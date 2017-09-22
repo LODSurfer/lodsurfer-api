@@ -19,13 +19,14 @@ public class LODSurferService {
     LSCtrl lsctrl;
     
     public LODSurferService(){
-        lsctrl = new LSCtrl();
-    }
-    
+        if ( lsctrl == null ){
+            lsctrl = new LSCtrl();
+        }
+    }    
     
     @GET
     public String getUsage(){
-        return "Hi";
+        return "";
     }
     
     @GET
@@ -33,19 +34,26 @@ public class LODSurferService {
     public String getEPList(){
         return lsctrl.getEPs().toString();
     }
-
+/*
     @GET
     @Path("/clist")
     public String getCList(){
         return lsctrl.getAllClasses().toString();
     }
-
-    @GET
-    @Path("/clist/{class1}")
-    public String getCList(@PathParam("class1") String class1){
-        return lsctrl.getCLs(class1).toString();        
-    }
+//*/
     
+    
+///*    
+    @GET
+    @Path("/clist")
+    public String getCList(@QueryParam("class1") String class1){
+        if (class1 == null){
+            return lsctrl.getAllClasses().toString();
+        }else{
+            return lsctrl.getCLs(class1).toString();                    
+        }
+    }
+
     @GET
     @Path("/path/{class1}/{class2}")
     public String getPaths(@PathParam("class1") String class1, @PathParam("class2") String class2){
