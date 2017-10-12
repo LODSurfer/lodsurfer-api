@@ -5,8 +5,11 @@
  */
 package org.sparqlbuilder.lodsurfer.core;
 
+import java.io.*;
+import java.math.BigDecimal;
 import java.util.*;
 import javax.json.*;
+import javax.json.stream.*;
 
 /**
  *
@@ -158,11 +161,12 @@ public class LSCtrl {
             DiEdge edge = prit.next();
             jab4p.add(toJsonFromDiEdge(edge));
         }
+        job.add("relations", jab4p);
         
         JsonObject jo = job.build();
         return jo;
     }
-    
+        
     public JsonObject toJsonFromDiEdge(DiEdge edge){
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
         JsonObjectBuilder job = jbfactory.createObjectBuilder();
@@ -176,7 +180,25 @@ public class LSCtrl {
         
         JsonObject jo = job.build();
         return jo;        
-    }    
+    }
+    
+    public String getSPARQL(String path, String instances){
+        JsonObject jo = LSIO.parseJsonObject(path);
+        JsonArray cl = jo.getJsonArray("classes");
+        JsonArray rel = jo.getJsonArray("relations");
+        
+        JsonArray ja = LSIO.parseJsonArray(instances);
+        
+        StringBuilder sb = new StringBuilder();
+        // koko TODO
+        return sb.toString();
+    }
+    
+    public String getResult(String path, String instances){
+        String sparql = getSPARQL(path, instances);
+        // koko TODO
+        return sparql;
+    }
     
     private Map<String, Set<SPathInfo>> convert2SPath(Map<String, Set<String>> reltmp){
         Map<String, Set<SPathInfo>> sp = new HashMap<>();
@@ -185,6 +207,7 @@ public class LSCtrl {
             sp.put(cit.next(), new HashSet<SPathInfo>());
         }
         
+        cit = reltmp.keySet().iterator();
         while ( cit.hasNext()){         
             String cl1 = cit.next();
             Iterator<String> sit = reltmp.get(cl1).iterator();
@@ -196,5 +219,5 @@ public class LSCtrl {
         }
         
         return sp;
-    }
+    }    
 }

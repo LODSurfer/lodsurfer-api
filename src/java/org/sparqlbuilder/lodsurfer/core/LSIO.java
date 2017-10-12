@@ -8,6 +8,7 @@ package org.sparqlbuilder.lodsurfer.core;
 
 import java.util.*;
 import java.io.*;
+import javax.json.*;
 
 /**
  *
@@ -106,4 +107,21 @@ public class LSIO {
         
         return cg;
     }
+    
+    static public JsonObject parseJsonObject(String jos){
+        //JsonParserFactory f = Json.createParserFactory(null);
+        JsonReader jr = Json.createReader(new StringReader(jos));
+        JsonObject jo = jr.readObject();
+        jr.close();
+        return jo;
+    }
+
+    static public JsonArray parseJsonArray(String jas){
+        //JsonParserFactory f = Json.createParserFactory(null);
+        JsonReader jr = Json.createReader(new StringReader(jas));
+        JsonArray ja = jr.readArray();
+        jr.close();
+        return ja;
+    }
+    
 }

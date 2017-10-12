@@ -16,13 +16,13 @@ import org.sparqlbuilder.lodsurfer.core.LSCtrl;
 @Path("/")
 public class LODSurferService {
     
-    LSCtrl lsctrl;
+    LSCtrl lsctrl = new LSCtrl();;
     
-    public LODSurferService(){
+    /*public LODSurferService(){
         if ( lsctrl == null ){
             lsctrl = new LSCtrl();
         }
-    }    
+    } */   
     
     @GET
     public String getUsage(){
@@ -34,6 +34,7 @@ public class LODSurferService {
     public String getEPList(){
         return lsctrl.getEPs().toString();
     }
+    
 /*
     @GET
     @Path("/clist")
@@ -41,9 +42,7 @@ public class LODSurferService {
         return lsctrl.getAllClasses().toString();
     }
 //*/
-    
-    
-///*    
+        
     @GET
     @Path("/clist")
     public String getCList(@QueryParam("class1") String class1){
@@ -54,24 +53,38 @@ public class LODSurferService {
         }
     }
 
-    @GET
-    @Path("/path/{class1}/{class2}")
-    public String getPaths(@PathParam("class1") String class1, @PathParam("class2") String class2){
+    /*@GET
+    @Path("/path")
+    public String getPaths(@QueryParam("class1") String class1, @QueryParam("class2") String class2){
         return lsctrl.getPaths(class1, class2).toString();
     }
+    */
     
     @GET
-    @Path("/path/{class1}/{class2}/{filters}")
-    public String getPaths(@PathParam("class1") String class1, @PathParam("class2") String class2,
-                           @PathParam("filters") String filters){
-        return "Hi";
+    @Path("/path")
+    public String getPaths(@QueryParam("class1") String class1, @QueryParam("class2") String class2,
+                           @QueryParam("filter") String filters){
+        return lsctrl.getPaths(class1, class2).toString();
         
     }
    
+    /*
     @GET
-    @Path("/ipath/{path}/{instances}")
-    public String getIPaths(@PathParam("path") String iclass, @PathParam("instances") String oclass){
-        return "Hi";
-        
+    @Path("/tps")
+    public String getTPS(@QueryParam("path") String path){
+        return lsctrl.getTPs(path).toString();        
+    }
+    */
+    
+    @GET
+    @Path("/sparql")
+    public String getSPARQL(@QueryParam("path") String path, @QueryParam("instances") String instances){
+        return lsctrl.getSPARQL(path, instances);
+    }
+    
+    @GET
+    @Path("/result")
+    public String getResult(@QueryParam("path") String path, @QueryParam("instances") String instances){
+        return lsctrl.getResult(path, instances);
     }
 }

@@ -16,7 +16,7 @@ import org.sparqlbuilder.lodsurfer.core.LSCtrl;
 
 @ApplicationPath("api")
 public class LODSurferApp extends Application{
-    //LSCtrl lsctrl;
+    LSCtrl lsctrl;
 
     public LODSurferApp(){
         //lsctrl = new LSCtrl();    
