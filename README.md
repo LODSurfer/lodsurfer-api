@@ -14,8 +14,8 @@ This is a web api for a search system called LOD Surfer.
 - Get a list of paths from class1 to class2 (with {filter1}, {filter2}, ...). If the parameter filter is omitted, all paths are listed. Note that each filter is a pair of a class C and a boolean b. If the boolean b is true, each path should go through the class C. If the boolean b is false, each path must not go through the class C.
   - /path/?class1={class1}&class2={class2}&filter=[{filter1}, {filter2},....]
 
-- Get a set of triple patterns with information of SPARQL endpoints from a path. The parameter instance can be omitted. 
+- Get a set of triple patterns with information of SPARQL endpoints from a path. The parameter instances can be omitted. 
   - /tps/?path={path}&instances=[{instance1},{instance2},...]
  
-- Get a federated SPARQL query from a path. The parameter instance can be omitted.
+- Get a federated SPARQL query from a path. The parameter instances can be omitted.
   - /sparql/?path={path}&instances=[{instance1},{instance2},...]
