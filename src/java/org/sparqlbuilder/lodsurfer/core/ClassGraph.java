@@ -17,7 +17,7 @@ public class ClassGraph {
     List<String> classURIs;
     Map<String,Integer> uRI2node;
     List<Set<Integer>> adjlist;
-    List<Map<Integer,List<DiEdge>>> properties; // n1 - (n2 - labels)
+    List<Map<Integer,Set<DiEdge>>> properties; // n1 - (n2 - labels)
     
     public ClassGraph(){
         classURIs = new ArrayList<>();
@@ -31,13 +31,13 @@ public class ClassGraph {
         uRI2node.put(classURI, classURIs.size());
         classURIs.add(classURI);
         adjlist.add(new HashSet<Integer>());
-        properties.add(new HashMap<Integer, List<DiEdge>>());
+        properties.add(new HashMap<Integer, Set<DiEdge>>());
     }
     
     public void addEdge(String classURI1, String classURI2, String property, String endpointURI,
             int dsn, int don, int trn){
         Integer node1 = uRI2node.get(classURI1);
-        Integer node2 = uRI2node.get(classURI1);
+        Integer node2 = uRI2node.get(classURI2);
         addEdge(node1, node2, property, endpointURI, dsn, don, trn);
     }
     
@@ -52,9 +52,9 @@ public class ClassGraph {
         cr.don = don;
         cr.trn = trn;
         
-        if (properties.get(node1).get(node2) == null){ properties.get(node1).put(node2, new LinkedList<DiEdge>());}
+        if (properties.get(node1).get(node2) == null){ properties.get(node1).put(node2, new HashSet<DiEdge>());}
         properties.get(node1).get(node2).add(new DiEdge(cr, true));
-        if (properties.get(node2).get(node1) == null){ properties.get(node2).put(node1, new LinkedList<DiEdge>());}
+        if (properties.get(node2).get(node1) == null){ properties.get(node2).put(node1, new HashSet<DiEdge>());}
         properties.get(node2).get(node1).add(new DiEdge(cr, false));
     }
     
@@ -113,11 +113,12 @@ public class ClassGraph {
         Integer start = spit.next();
         String startClass = this.classURIs.get(start);
         Integer end = spit.next();
-        List<DiEdge> edges = properties.get(start).get(end);
-        ListIterator<DiEdge> eit = edges.listIterator();
+        Set<DiEdge> edges = properties.get(start).get(end);
+        Iterator<DiEdge> eit = edges.iterator();
         while ( eit.hasNext() ){
             ClassPath cp = new ClassPath();
             cp.classes = simplePath;
+            cp.properties = new LinkedList<DiEdge>(); 
             cp.properties.add(eit.next());
             paths.add(cp);
         }
@@ -131,7 +132,7 @@ public class ClassGraph {
             ListIterator<ClassPath> pit = paths.listIterator();
             while ( pit.hasNext() ){
                 ClassPath basepath = pit.next();
-                eit = edges.listIterator();
+                eit = edges.iterator();
                 while ( eit.hasNext() ){
                     // koko kara
                     DiEdge cl = eit.next();

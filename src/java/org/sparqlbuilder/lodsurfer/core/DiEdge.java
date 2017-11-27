@@ -17,5 +17,17 @@ public class DiEdge {
         //this.node = node;
         this.cr = cr;
         this.direction = direction;
-    }    
+    }
+    
+    @Override
+    public boolean equals(Object ob){
+        if ( this == ob ){ return true; }
+        if ( ob instanceof DiEdge){
+            DiEdge di = (DiEdge) ob;
+            if ( cr.equals(di.cr) && direction == di.direction ){
+                return true;
+            }
+        }
+        return false;
+    }
 }

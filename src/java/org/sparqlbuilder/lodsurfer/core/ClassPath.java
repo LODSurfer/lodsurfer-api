@@ -17,6 +17,7 @@ public class ClassPath {
     List<DiEdge> properties;
     
     public ClassPath(){
-        
+        //classes = new LinkedList<Integer>();
+        //properties = new 
     } 
 }
