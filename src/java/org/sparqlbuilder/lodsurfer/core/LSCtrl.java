@@ -5,11 +5,11 @@
  */
 package org.sparqlbuilder.lodsurfer.core;
 
-import java.io.*;
-import java.math.BigDecimal;
+//import java.io.*;
+//import java.math.BigDecimal;
 import java.util.*;
 import javax.json.*;
-import javax.json.stream.*;
+//import javax.json.stream.*;
 
 /**
  *
@@ -17,29 +17,37 @@ import javax.json.stream.*;
  */
 public class LSCtrl {
     
+    List<String> eps = null;
     ClassGraph cg = null;
-    Map<String, ClassInfo> cl = null;  // classURI->classInfo
-    Map<String, Set<SPathInfo>> clrel = null; // class->(step,classes)
+    List<Boolean> singleton = null;
     
-    Set<String> eps = null;
+    Map<String, ClassInfo> cl = null;  // classURI->classInfo
+    List<Set<Integer>> cc = null; // cc
     //Set<String> yum = null; // yummy ep list
     
-    String clfile = "cc/cl.txt";
-    String epfile = "cc/ep.txt";
-    String crelfile = "cc/cr.txt";
+    //Map<String, Set<SPathInfo>> clrel = null; // class->(step,classes)
+
+    
+    String epfile = "cc/ep.txt"; // ep URLs
+    String clfile = "cc/cl.txt"; // cl uri \tab cl label \tab ent
+    String plfile = "cc/pl.txt"; // prop
+    String crfile = "cc/cr.txt"; // cl1 url \tab prop url \tab cl2url \tab epurl
+    String ccfile = "cc/cc.txt"; // number \tab id1,id2,... (for each cc) 
     String cldir = "cc/";
     
     public LSCtrl(){
+        cg = new ClassGraph();
+        singleton = new ArrayList<>(); // true = singleton        
         // cl.txt -> cl
         eps = LSIO.readEP(epfile);
-        cl = LSIO.readCL(clfile);
-        Map<String, Set<String>> clreltmp = LSIO.readCR(crelfile);
-        clrel = convert2SPath(clreltmp);
-
-        cg = LSIO.readCLDir(cldir, eps);
-        // clrel.txt -> crel        
+        List<String> cls = LSIO.readCL(clfile);       
+        parseCL(cls);
+        
+        LSIO.readCR(crfile, cg);
+        cc = LSIO.readCC(ccfile, singleton);
     }
     
+/*
     public class SPathInfo{
         String class2;
         int minstep;
@@ -48,7 +56,7 @@ public class LSCtrl {
             minstep = sp;
         }
     }
-    
+*/    
     
     public JsonArray getEPs(){
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
@@ -62,54 +70,58 @@ public class LSCtrl {
         return ja;
     }
     
-    public JsonArray getAllClasses(){
+    public JsonArray getAllClasses(Boolean isolated){
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
         JsonArrayBuilder jab = jbfactory.createArrayBuilder();
-            Iterator<String> cit = cl.keySet().iterator();
-            JsonObjectBuilder job = jbfactory.createObjectBuilder();
-            while( cit.hasNext() ){
-                String classuri = cit.next();
-                ClassInfo classinfo = cl.get(classuri);
-                ListIterator<String> eit = classinfo.endpoints.listIterator();
-                while ( eit.hasNext() ){
-                    String ep = eit.next();
-                    job.add("ep", ep);
-                    job.add("uri", classuri);
-                    //job.add("label", classinfo.prlabel);
-                    job.add("label", classinfo.labels.get(0));
-                    job.add("number", classinfo.instances4e.get(ep));
-                    jab.add(job);
+        Iterator<String> cit = cg.classURIs.iterator();
+        Iterator<Boolean> bit = singleton.iterator();
+        JsonObjectBuilder job = jbfactory.createObjectBuilder();
+        while( cit.hasNext() ){
+            String classuri = cit.next();
+            if ( isolated != null ){
+                boolean b = bit.next();
+                if ( isolated.booleanValue() == true && b == false){ 
+                    continue;
+                }
+                if ( isolated.booleanValue() == false && b == true ){
+                    continue;
                 }
             }
+            ClassInfo classinfo = cl.get(classuri);
+            job.add("uri", classuri);
+            job.add("label", classinfo.prlabel);
+            job.add("instances", classinfo.instances);
+            jab.add(job);
+        }
         JsonArray ja = jab.build();
-        return ja;
-        
+        return ja;        
     }
     
     public JsonArray getCLs(String class1){
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
         JsonArrayBuilder jab = jbfactory.createArrayBuilder();
         if (class1 == null){
-            return jab.build();
+            return getAllClasses(new Boolean(false));
         }else{
-            Set<SPathInfo> classes = clrel.get(class1);
-            if (classes == null ){
-                return jab.build();
-            }
-            Iterator<SPathInfo> cit = classes.iterator();
-            JsonObjectBuilder job = jbfactory.createObjectBuilder();
-            while( cit.hasNext() ){
-                String classuri = cit.next().class2;
-                //String classuri = nclassuri.split(" ")[1];
-                ClassInfo classinfo = cl.get(classuri);
-                ListIterator<String> eit = classinfo.endpoints.listIterator();
-                while ( eit.hasNext() ){
-                    String ep = eit.next();
-                    job.add("ep", ep);
-                    job.add("uri", classuri);
-                    job.add("label", classinfo.labels.get(0));
-                    job.add("number", classinfo.instances4e.get(ep));
-                    jab.add(job);
+            Integer cid = cg.uRI2node.get(class1);
+            if ( cid != null ){
+                if ( singleton.get(cid) ){
+                    JsonArray ja = jab.build();
+                    return ja;                    
+                } 
+                Set<Integer> compo = getCompo(cid);
+                if ( compo != null ){
+                    Iterator<Integer> coit = compo.iterator();
+                    JsonObjectBuilder job = jbfactory.createObjectBuilder();
+                    while ( coit.hasNext() ){
+                        int clid = coit.next();
+                        String cluri = cg.classURIs.get(clid);
+                        ClassInfo classinfo = cl.get(cluri);
+                        job.add("uri", cluri);
+                        job.add("label", classinfo.prlabel);
+                        job.add("instances", classinfo.instances);
+                        jab.add(job);
+                    }
                 }
             }
         }
@@ -121,21 +133,8 @@ public class LSCtrl {
         JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
         JsonArrayBuilder jab = jbfactory.createArrayBuilder();
         
-        Set<SPathInfo> cl = clrel.get(class1);
-        Iterator<SPathInfo> cit = cl.iterator();
-        int minstep = 0;
-        while ( cit.hasNext() ){
-            SPathInfo si = cit.next();
-            //String[] cdata = cit.next().split(" ");
-            if ( si.class2.equals(class2) ){
-                minstep = si.minstep;
-            }
-        }
-        if ( minstep == 0 ){
-            return jab.build();
-        }
+        List<ClassPath> paths = cg.getPaths(class1, class2);        
         
-        List<ClassPath> paths = cg.getPaths(class1, class2, minstep);
         ListIterator<ClassPath> pit = paths.listIterator();
         while ( pit.hasNext() ){
             jab.add(toJsonFromPath(pit.next()));
@@ -183,23 +182,48 @@ public class LSCtrl {
     }
     
     public String getSPARQL(String path, String instances){
+        //if (path == null){ return "";}
+        //if (path.length() == 0){ return "";}
         JsonObject jo = LSIO.parseJsonObject(path);
+        
         JsonArray cl = jo.getJsonArray("classes");
+        List<String> curl = new LinkedList<>();
+        Iterator<JsonValue> jit = cl.listIterator();
+        while ( jit.hasNext() ){
+            String c = ((JsonString) jit.next()).getString();
+            curl.add(c);
+        } 
+        
         JsonArray rel = jo.getJsonArray("relations");
+        List<DiEdge> crl = new LinkedList<>();
+        jit = rel.listIterator();
+        while ( jit.hasNext() ){
+            JsonObject jcr = (JsonObject) jit.next();            
+            ClassRelation cr = new ClassRelation(jcr.getString("property"), jcr.getString("ep"),
+                                                 100, 100, 100);
+            DiEdge de = new DiEdge(cr, jcr.getBoolean("direction"));
+            crl.add(de);
+        }
         
-        JsonArray ja = LSIO.parseJsonArray(instances);
-        
-        StringBuilder sb = new StringBuilder();
-        // koko TODO
-        return sb.toString();
+        List<String> ins = null;
+        if ( instances != null ){
+            JsonArray ja = LSIO.parseJsonArray(instances);
+            // kongo
+        }
+        //JsonBuilderFactory jbfactory = Json.createBuilderFactory(null);
+        //JsonArrayBuilder jab = jbfactory.createArrayBuilder();
+        //jab.add(LSQuery.getSPARQL(curl, crl, ins));
+        //return jab.build();
+        return LSQuery.getSPARQL(curl, crl, ins);
     }
     
     public String getResult(String path, String instances){
-        String sparql = getSPARQL(path, instances);
+        //String sparql = getSPARQL(path, instances);
         // koko TODO
-        return sparql;
+        return "";
     }
     
+/*
     private Map<String, Set<SPathInfo>> convert2SPath(Map<String, Set<String>> reltmp){
         Map<String, Set<SPathInfo>> sp = new HashMap<>();
         Iterator<String> cit = reltmp.keySet().iterator();
@@ -216,8 +240,33 @@ public class LSCtrl {
                 sp.get(cl1).add(new SPathInfo(scl[1], Integer.parseInt(scl[0])));
                 sp.get(scl[1]).add(new SPathInfo(cl1, Integer.parseInt(scl[0])));                
             }
-        }
-        
+        }        
         return sp;
-    }    
+    }
+*/
+    
+    private void parseCL(List<String> cls){
+        cl = new HashMap<>();
+        ListIterator<String> cit = cls.listIterator();
+        int count = 0;
+        while ( cit.hasNext() ){
+            String ci = cit.next();
+            String data[] = ci.split("\t");
+            cg.addNode(data[0]);
+            singleton.add(new Boolean(true));
+            cl.put(data[0], new ClassInfo(data[0], data[1], Integer.parseInt(data[2])));
+            count ++;
+        }
+    }
+    
+    private Set<Integer> getCompo(Integer cid){
+        Iterator<Set<Integer>> cit = cc.iterator();
+        while(cit.hasNext()){
+            Set<Integer> compo = cit.next();
+            if ( compo.contains(cid)){
+                return compo;
+            }
+        }
+        return null; //new HashSet<Integer>();
+    }
 }

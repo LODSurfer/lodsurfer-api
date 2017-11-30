@@ -13,31 +13,34 @@ import java.util.*;
  */
 public class ClassInfo {
     List<String> endpoints;
+    //String endpoint;
     String prlabel;
-    List<String> labels;
+    //List<String> labels;
     String url;
-    Map<String, Integer> instances4e;
+    //Map<String, Integer> instances4e;
     int instances;
     
-    public ClassInfo(String endpoint, String clURL, String label, int ent){
+    //public ClassInfo(String endpoint, String clURL, String label, int ent){
+    public ClassInfo(String clURL, String label, int ent){  
         url = clURL;
+        prlabel = label;
+        //endpoints = new LinkedList<String>();
+        //endpoints.add(endpoint);
                 
-        endpoints = new LinkedList<String>();
-        endpoints.add(endpoint);
+        //labels = new  LinkedList<String>();
+        //labels.add(label);
         
-        labels = new  LinkedList<String>();
-        labels.add(label);
-        
-        instances4e = new HashMap<String, Integer>();
-        instances4e.put(endpoint, ent);
+        //instances4e = new HashMap<String, Integer>();
+        //instances4e.put(endpoint, ent);
         
         instances = ent;
     }
     
-    public void addInfo(String endpoint, String label, int ent){
-        endpoints.add(endpoint);
-        labels.add(label);
-        instances4e.put(endpoint, ent);
+    public void addInfo(String label, int ent){
+        prlabel = label;
+        //endpoints.add(endpoint);
+        //labels.add(label);
+        //instances4e.put(endpoint, ent);
         instances += ent;          
     }
     

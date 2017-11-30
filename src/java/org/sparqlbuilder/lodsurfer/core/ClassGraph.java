@@ -15,9 +15,12 @@ import java.util.*;
 
 public class ClassGraph {
     List<String> classURIs;
+
     Map<String,Integer> uRI2node;
     List<Set<Integer>> adjlist;
     List<Map<Integer,Set<DiEdge>>> properties; // n1 - (n2 - labels)
+    
+    int maxstep = 5;
     
     public ClassGraph(){
         classURIs = new ArrayList<>();
@@ -36,6 +39,10 @@ public class ClassGraph {
     
     public void addEdge(String classURI1, String classURI2, String property, String endpointURI,
             int dsn, int don, int trn){
+        if (classURI1.equals("http://www.ebi.ac.uk/efo/EFO_0000772")
+                || classURI2.equals("http://www.ebi.ac.uk/efo/EFO_0000772") ){
+            System.out.println("here");
+        }
         Integer node1 = uRI2node.get(classURI1);
         Integer node2 = uRI2node.get(classURI2);
         addEdge(node1, node2, property, endpointURI, dsn, don, trn);
@@ -58,13 +65,14 @@ public class ClassGraph {
         properties.get(node2).get(node1).add(new DiEdge(cr, false));
     }
     
-    public List<ClassPath> getPaths(String class1, String class2, int nsteps){
+    public List<ClassPath> getPaths(String class1, String class2){
         List<ClassPath> cps = new LinkedList<>();
         
         //checkedpaths = new HashMap<String, Boolean>();
         Integer snode = uRI2node.get(class1);
         Integer enode = uRI2node.get(class2);
-        List<List<Integer>> simplePaths = searchSimplePaths(snode, enode, nsteps);
+        
+        List<List<Integer>> simplePaths = searchSimplePaths(snode, enode);
  
         ListIterator<List<Integer>> pit = simplePaths.listIterator();       
         while( pit.hasNext()){
@@ -75,13 +83,15 @@ public class ClassGraph {
         return cps;
     }
     
-    private List<List<Integer>> searchSimplePaths(Integer snode, Integer enode, int nsteps){
+    private List<List<Integer>> searchSimplePaths(Integer snode, Integer enode){
         List<List<Integer>> simplePaths = new LinkedList<>();
         List<List<Integer>> lp = new LinkedList<>();
         List<Integer> ini = new LinkedList<Integer>(); // initial path
+        int sstep = -1;
         ini.add(snode);
         lp.add(ini);
-        for (int i = 0; i < nsteps; i++ ){
+        for (int i = 1; i < maxstep ; i++ ){
+            if ( sstep != -1 && sstep < i + 2 ){ break;}
             ListIterator<List<Integer>> lit = lp.listIterator();
             List<List<Integer>> nextlp = new LinkedList<>();
             while ( lit.hasNext() ){ 
@@ -96,6 +106,9 @@ public class ClassGraph {
                     nextpath.add(nextnode);
                     if ( nextnode.equals(enode) ){
                         simplePaths.add(nextpath);
+                        if ( sstep == -1 ){ 
+                            sstep = i; 
+                        }
                         continue;
                     }
                     nextlp.add(nextpath);
@@ -109,7 +122,6 @@ public class ClassGraph {
     private List<ClassPath> convertSimplePathToPaths(List<Integer> simplePath){
         List<ClassPath> paths = new LinkedList<ClassPath>();
         ListIterator<Integer> spit = simplePath.listIterator();
-
         Integer start = spit.next();
         String startClass = this.classURIs.get(start);
         Integer end = spit.next();
@@ -134,17 +146,17 @@ public class ClassGraph {
                 ClassPath basepath = pit.next();
                 eit = edges.iterator();
                 while ( eit.hasNext() ){
-                    // koko kara
                     DiEdge cl = eit.next();
                     ClassPath addedpath = new ClassPath();
                     addedpath.classes = basepath.classes;
+                    addedpath.properties = new LinkedList<>(basepath.properties);
                     addedpath.properties.add(cl);
                     tmppaths.add(addedpath);
                 }
             }
             paths = tmppaths;
             start = end;
-        }        
+        }
         return paths;
     }
     

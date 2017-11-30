@@ -16,7 +16,7 @@ import javax.json.*;
  */
 public class LSIO {
     
-    static Set<String> readEP(String filename){
+    static List<String> readEP(String filename){
         Set<String> eps = new HashSet<>();
         File epfile = new File(filename);
         try{
@@ -28,9 +28,10 @@ public class LSIO {
         }catch(IOException e){
             e.printStackTrace();
         }
-        return eps;
+        return new LinkedList(eps);
     }
-    
+
+    /*
     static Map<String, ClassInfo> readCL(String filename){
         Map<String, ClassInfo> cl = new HashMap<String, ClassInfo>();
         File clfile = new File(filename);
@@ -51,9 +52,61 @@ public class LSIO {
             e.printStackTrace();
         }
         return cl;
+    }*/
+    
+    static List<String> readCL(String filename){
+        List<String> cl = new LinkedList<String>();
+        File clfile = new File(filename);
+        
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(clfile));
+            String buf;
+            while ( (buf = br.readLine()) != null ){
+                cl.add(buf);
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        return cl;
     }
     
-    static Map<String, Set<String>> readCR(String filename){
+    static void readCR(String filename, ClassGraph cg){
+        File crfile = new File(filename);
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(crfile));
+            String buf;
+            while ( (buf = br.readLine()) != null ){
+                String[] data = buf.split("\t");// cl1 pr cl2 ep
+                cg.addEdge(data[0], data[2], data[1], data[3], 100, 100, 100);
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+        }        
+    }
+    
+    static List<Set<Integer>> readCC(String filename, List<Boolean> singleton){
+        File crfile = new File(filename);
+        List<Set<Integer>> cc = new LinkedList<>();
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(crfile));
+            String buf;
+            while ( (buf = br.readLine()) != null ){
+                Set<Integer> compo = new HashSet<>();
+                String[] data = buf.split("\t");// cl url \tab cl, cl,....
+                String[] ids = data[1].split(","); 
+                for ( int i = 0; i < ids.length; i++ ){
+                    compo.add(new Integer(ids[i]));
+                    singleton.set(Integer.parseInt(ids[i]), new Boolean(false));                    
+                }
+                cc.add(compo);
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        return cc;
+    }
+    
+    /*
         Map<String, Set<String>> cr = new HashMap<>();
         File crfile = new File(filename);
         try{
@@ -81,6 +134,7 @@ public class LSIO {
         }
         return cr;
     }
+    */
     
     static ClassGraph readCLDir(String dir, Set<String> eps){
         ClassGraph cg = new ClassGraph();

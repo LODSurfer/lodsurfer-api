@@ -18,6 +18,6 @@ public class ClassPath {
     
     public ClassPath(){
         //classes = new LinkedList<Integer>();
-        //properties = new 
+        properties = new LinkedList<>(); 
     } 
 }

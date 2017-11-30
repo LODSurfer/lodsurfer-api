@@ -12,9 +12,20 @@ package org.sparqlbuilder.lodsurfer.core;
 public class ClassRelation {
     String propertyURI = ""; // url
     String endpointURI = ""; // url
+    
     int dsn;
     int don;
     int trn;
+    
+    public ClassRelation(){}
+    
+    public ClassRelation(String pu, String ep, int s, int o, int t){
+        endpointURI = ep;
+        propertyURI = pu;
+        dsn = s;
+        don = o;
+        trn = t;       
+    }
     
     @Override
     public boolean equals(Object ob){
