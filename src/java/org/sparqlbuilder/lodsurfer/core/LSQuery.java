@@ -45,5 +45,38 @@ public class LSQuery {
         return sparql.toString();
     }
     
-    //static 
+    /*
+    static public List<String> getSPARQLwithIns(List<String> curl, List<DiEdge> crl, List<String> ins){
+        StringBuilder sparql = new StringBuilder(prefixHeader);
+        if ( curl.size() < 2 || curl.size() != crl.size() + 1){ return null;}
+        ListIterator<DiEdge> rit = crl.listIterator();
+        int count = 0;
+        while ( rit.hasNext() ){
+            //sparql.append("SERVICE <");
+            String r1 = "?res".concat(Integer.toString(count));
+            String r2 = "?res".concat(Integer.toString(count+1));
+            DiEdge de = rit.next();
+            //sparql.append(de.cr.endpointURI);
+            //sparql.append(">{\n");
+            if ( de.direction ){ 
+                sparql.append(r1).append(" <").append(de.cr.propertyURI).append("> ").append(r2).append(" .\n");
+            }else{
+                sparql.append(r2).append(" <").append(de.cr.propertyURI).append("> ").append(r1).append(" .\n");
+            }
+            sparql.append(r1).append(" <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <").append(curl.get(count)).append("> .\n");
+            sparql.append(r2).append(" <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <").append(curl.get(count+1)).append("> .\n");
+            //sparql.append("}\n");
+            count ++;
+        }
+        
+        List<String> qs = new LinkedList<>();
+        if ( ins == null ){ 
+            qs.add(sparql.append("}").toString());
+        }
+        
+        
+        //sparql.append("}");
+        return qs;
+   }
+    */
 }

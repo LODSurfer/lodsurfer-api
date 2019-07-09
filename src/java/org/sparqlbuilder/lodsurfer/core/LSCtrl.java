@@ -5,11 +5,8 @@
  */
 package org.sparqlbuilder.lodsurfer.core;
 
-//import java.io.*;
-//import java.math.BigDecimal;
 import java.util.*;
 import javax.json.*;
-//import javax.json.stream.*;
 
 /**
  *
@@ -28,12 +25,12 @@ public class LSCtrl {
     //Map<String, Set<SPathInfo>> clrel = null; // class->(step,classes)
 
     
-    String epfile = "cc/ep.txt"; // ep URLs
-    String clfile = "cc/cl.txt"; // cl uri \tab cl label \tab ent
-    String plfile = "cc/pl.txt"; // prop
-    String crfile = "cc/cr.txt"; // cl1 url \tab prop url \tab cl2url \tab epurl
-    String ccfile = "cc/cc.txt"; // number \tab id1,id2,... (for each cc) 
-    String cldir = "cc/";
+    String epfile = "md/ep.txt"; // ep URLs
+    String clfile = "md/cl.txt"; // cl uri \tab cl label \tab ent
+    //String plfile = "md/pl.txt"; // prop
+    String crfile = "md/cr.txt"; // cl1 url \tab prop url \tab cl2url \tab epurl
+    String ccfile = "md/cc.txt"; // number \tab id1,id2,... (for each cc) 
+    //String cldir = "cc/";
     
     public LSCtrl(){
         cg = new ClassGraph();
@@ -218,6 +215,26 @@ public class LSCtrl {
     }
     
     public String getResult(String path, String instances){
+        JsonObject jo = LSIO.parseJsonObject(path);
+        
+        JsonArray cl = jo.getJsonArray("classes");
+        List<String> curl = new LinkedList<>();
+        Iterator<JsonValue> jit = cl.listIterator();
+        while ( jit.hasNext() ){
+            String c = ((JsonString) jit.next()).getString();
+            curl.add(c);
+        } 
+        
+        JsonArray rel = jo.getJsonArray("relations");
+        List<DiEdge> crl = new LinkedList<>();
+        jit = rel.listIterator();
+        while ( jit.hasNext() ){
+            JsonObject jcr = (JsonObject) jit.next();            
+            ClassRelation cr = new ClassRelation(jcr.getString("property"), jcr.getString("ep"),
+                                                 100, 100, 100);
+            DiEdge de = new DiEdge(cr, jcr.getBoolean("direction"));
+            crl.add(de);
+        }
         //String sparql = getSPARQL(path, instances);
         // koko TODO
         return "";
