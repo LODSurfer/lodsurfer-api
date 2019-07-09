@@ -6,7 +6,7 @@
 package org.sparqlbuilder.lodsurfer.www;
 
 import javax.ws.rs.*;
-import java.net.URLEncoder;
+//import java.net.*;
 import org.sparqlbuilder.lodsurfer.core.LSCtrl;
 
 /**
@@ -46,7 +46,7 @@ public class LODSurferService {
         
     @GET
     @Path("/clist")
-    public String getCList(@QueryParam("class1") String class1, @QueryParam("isolated") Boolean isolated ){
+    public String getCList(@QueryParam("class1") String class1, @QueryParam("isolated") Boolean isolated){
         if (class1 == null){
             return lsctrl.getAllClasses(isolated).toString();
         }else{
@@ -66,7 +66,6 @@ public class LODSurferService {
     public String getPaths(@QueryParam("class1") String class1, @QueryParam("class2") String class2,
                            @QueryParam("filter") String filters){
         return lsctrl.getPaths(class1, class2).toString();
-        
     }
    
     /*
